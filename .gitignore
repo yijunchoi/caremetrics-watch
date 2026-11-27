@@ -221,3 +221,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Course (local only)
+reference/
+
+# CareMetrics Watch
+data/raw/
+conversations.db*

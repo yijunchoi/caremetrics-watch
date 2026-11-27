@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CareMetrics Watch</title>
+        <style>
+            body { font-family: system-ui, sans-serif; max-width: 700px; margin: 3rem auto; padding: 0 1rem; }
+            #messages p { line-height: 1.5; }
+            form { display: flex; gap: 0.5rem; margin-top: 1rem; }
+            input { flex: 1; padding: 0.5rem; }
+        </style>
+    </head>
+    <body>
+        <h1>CareMetrics Watch</h1>
+        <p>Placeholder page for the deploy test.</p>
+        <div id="messages"></div>
+        <form id="form">
+            <input id="input" placeholder="Type a message..." autocomplete="off" />
+            <button>Send</button>
+        </form>
+        <script>
+            let sessionId = null;
+            const messages = document.getElementById("messages");
+            const input = document.getElementById("input");
+
+            function add(role, text) {
+                const p = document.createElement("p");
+                p.textContent = role + ": " + text;
+                messages.appendChild(p);
+            }
+
+            document.getElementById("form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const message = input.value.trim();
+                if (!message) return;
+                input.value = "";
+                add("You", message);
+                const res = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message, session_id: sessionId }),
+                });
+                const data = await res.json();
+                sessionId = data.session_id;
+                add("Assistant", data.response);
+            });
+        </script>
+    </body>
+</html>
