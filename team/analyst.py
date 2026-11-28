@@ -2,6 +2,7 @@
 
 from agents import Agent
 
+from guardrails import no_identifiers_in_answer
 from team.models import MODEL, SETTINGS
 from tools.sql import run_sql
 
@@ -34,28 +35,37 @@ Rules:
 - For a diagnosis that wasn't matched, look it up first, e.g.
   SELECT DISTINCT REASONDESCRIPTION FROM encounters WHERE REASONDESCRIPTION ILIKE '%asthma%'.
 - Report totals, counts, shares and averages only. Never select or show names, SSNs, addresses,
-  or Ids, and never list individual patients or visits.
+  or Ids, and never list individual patients or visits. If asked to, say you can't share
+  patient-level details, and offer a count instead.
+- Name every count column with "visits" or "patients" in it, e.g. visits_this_month. Put a
+  patient count, count(DISTINCT PATIENT) AS patients, beside every visit count.
+- Never report a group of fewer than 11 patients: leave such groups out with
+  HAVING count(DISTINCT PATIENT) >= 11, and say "fewer than 11" if they matter.
+- If run_sql answers "Rejected: ...", follow the reason and write a new query.
+- Every number in your answer must come from a run_sql result you got in this conversation.
+  Never estimate or make up a number.
 - Answer in plain English with the numbers and the period they cover. Don't show the SQL unless
   asked.
 
 Example queries:
 
 -- Emergency visits per month in the last 13 months
-SELECT strftime(START, '%Y-%m') AS month, count(*) AS visits
+SELECT strftime(START, '%Y-%m') AS month, count(*) AS visits, count(DISTINCT PATIENT) AS patients
 FROM encounters
 WHERE ENCOUNTERCLASS = 'emergency' AND START >= DATE '2019-01-01'
 GROUP BY 1 ORDER BY 1;
 
 -- Jan 2020 visits by insurer, with each insurer's share
-SELECT p.NAME AS insurer, count(*) AS visits,
+SELECT p.NAME AS insurer, count(*) AS visits, count(DISTINCT e.PATIENT) AS patients,
        round(100.0 * count(*) / sum(count(*)) OVER (), 1) AS pct
 FROM encounters e JOIN payers p ON p.Id = e.PAYER
 WHERE e.START >= DATE '2020-01-01'
 GROUP BY 1 ORDER BY visits DESC;
 
 -- This month vs the monthly average of the 12 months before
-SELECT count(*) FILTER (WHERE START >= DATE '2020-01-01') AS this_month,
-       count(*) FILTER (WHERE START < DATE '2020-01-01') / 12.0 AS monthly_average
+SELECT count(*) FILTER (WHERE START >= DATE '2020-01-01') AS visits_this_month,
+       count(DISTINCT PATIENT) FILTER (WHERE START >= DATE '2020-01-01') AS patients_this_month,
+       count(*) FILTER (WHERE START < DATE '2020-01-01') / 12.0 AS visits_monthly_average
 FROM encounters
 WHERE ENCOUNTERCLASS = 'inpatient' AND START >= DATE '2019-01-01';
 """
@@ -68,4 +78,5 @@ analyst = Agent(
     model=MODEL,
     model_settings=SETTINGS,
     tools=[run_sql],
+    output_guardrails=[no_identifiers_in_answer],
 )

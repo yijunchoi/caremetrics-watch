@@ -2,6 +2,7 @@
 
 from agents import Agent
 
+from guardrails import no_identifiers_in_answer
 from team.analyst import analyst
 from team.models import MODEL, SETTINGS
 
@@ -24,6 +25,8 @@ Decide what each message needs:
   - "How are our seniors doing?" -> "Which measure: visits by visit type, the most common
     diagnoses, or costs for patients 65 and over?"
   Once the user answers, hand off.
+- A request for patient names, SSNs, addresses, Ids or individual patients' records: don't hand
+  off. Say in one sentence that patient-level details are never shared, and offer a count instead.
 - Anything the data can't answer: say what the data covers, in one or two sentences.
 
 A question may end with "Matched in the data:" lines. They show which names in the question are
@@ -36,4 +39,5 @@ desk = Agent(
     model=MODEL,
     model_settings=SETTINGS,
     handoffs=[analyst],
+    output_guardrails=[no_identifiers_in_answer],
 )

@@ -1,27 +1,22 @@
 """Text2SQL: the Analyst writes SQL, and run_sql runs it against data/hospital.duckdb."""
 
 import json
-from pathlib import Path
 
 import duckdb
 from agents import function_tool
 
-DB_PATH = Path(__file__).parent.parent / "data" / "hospital.duckdb"
+from guardrails import no_identifiers_in_query, no_identifiers_in_result, no_small_groups, select_only
+from tools.db import db
+
 MAX_ROWS = 100
 
-try:
-    # The security boundary is the connection, not the prompt: read-only, no file or network
-    # access, and the agent can't SET its way out of either.
-    db = duckdb.connect(
-        str(DB_PATH),
-        read_only=True,
-        config={"enable_external_access": False, "lock_configuration": True},
-    )
-except duckdb.Error:
-    raise SystemExit("No database found. Run `uv run build_data.py` first.")
 
-
-@function_tool
+@function_tool(
+    # Checked before the query runs, then on its result. A rejection goes back to the model as the
+    # tool's answer, with the reason, so it can try again within the rules.
+    tool_input_guardrails=[select_only, no_identifiers_in_query],
+    tool_output_guardrails=[no_identifiers_in_result, no_small_groups],
+)
 def run_sql(query: str) -> str:
     """Run a DuckDB SQL query against the hospital database and return the results.
 

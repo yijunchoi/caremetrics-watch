@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 import uvicorn
-from agents import Runner, RunHooks, SQLiteSession, set_tracing_disabled
+from agents import OutputGuardrailTripwireTriggered, Runner, RunHooks, SQLiteSession, set_tracing_disabled
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -76,6 +76,11 @@ async def chat(request: ChatRequest):
         # Every message starts at the Desk; the session gives it the conversation so far.
         result = await Runner.run(desk, expand(request.message), session=session, hooks=hooks, max_turns=20)
         response, tool_calls = str(result.final_output), hooks.tool_calls
+    except OutputGuardrailTripwireTriggered as e:
+        # The answer had a patient identifier in it: show why, never the answer itself.
+        found = ", ".join(e.guardrail_result.output.output_info["found"])
+        response = f"I can't share that: the answer included patient-identifying details ({found})."
+        tool_calls = hooks.tool_calls
     except Exception as e:
         # Auth, billing, a model that is not running: show it in the chat, not as a 500.
         response, tool_calls = f"Model call failed: {type(e).__name__}: {str(e)[:300]}", hooks.tool_calls
