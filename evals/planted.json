@@ -1,0 +1,202 @@
+{
+  "month": "2020-01",
+  "changes": [
+    {
+      "dimension": "visit_type",
+      "group": "emergency",
+      "direction": "up",
+      "planted_change_pct": 50,
+      "cause": {
+        "age_band": "80+",
+        "insurer": "Medicare"
+      },
+      "visits_before": 251,
+      "visits_after": 377
+    },
+    {
+      "dimension": "visit_type",
+      "group": "urgentcare",
+      "direction": "up",
+      "planted_change_pct": 50,
+      "cause": null,
+      "visits_before": 138,
+      "visits_after": 202
+    },
+    {
+      "dimension": "visit_type",
+      "group": "inpatient",
+      "direction": "up",
+      "planted_change_pct": 30,
+      "cause": {
+        "diagnosis": "Chronic congestive heart failure (disorder)"
+      },
+      "visits_before": 277,
+      "visits_after": 378
+    },
+    {
+      "dimension": "visit_type",
+      "group": "outpatient",
+      "direction": "down",
+      "planted_change_pct": -10,
+      "cause": {
+        "insurer": "NO_INSURANCE"
+      },
+      "visits_before": 2366,
+      "visits_after": 1985
+    },
+    {
+      "dimension": "insurer",
+      "group": "Medicaid",
+      "direction": "up",
+      "planted_change_pct": 15,
+      "cause": null,
+      "visits_before": 1325,
+      "visits_after": 1430
+    },
+    {
+      "dimension": "insurer",
+      "group": "Humana",
+      "direction": "down",
+      "planted_change_pct": -20,
+      "cause": {
+        "age_band": "18-34"
+      },
+      "visits_before": 1072,
+      "visits_after": 892
+    },
+    {
+      "dimension": "insurer",
+      "group": "NO_INSURANCE",
+      "direction": "down",
+      "planted_change_pct": -5,
+      "cause": {
+        "visit_type": "outpatient"
+      },
+      "visits_before": 1986,
+      "visits_after": 1908
+    },
+    {
+      "dimension": "insurer",
+      "group": "Anthem",
+      "direction": "up",
+      "planted_change_pct": 20,
+      "cause": null,
+      "visits_before": 742,
+      "visits_after": 863
+    },
+    {
+      "dimension": "insurer",
+      "group": "Dual Eligible",
+      "direction": "up",
+      "planted_change_pct": 30,
+      "cause": {
+        "visit_type": "ambulatory"
+      },
+      "visits_before": 245,
+      "visits_after": 287
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Acute bronchitis (disorder)",
+      "direction": "up",
+      "planted_change_pct": 80,
+      "cause": {
+        "age_band": "0-17"
+      },
+      "visits_before": 88,
+      "visits_after": 163
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Viral sinusitis (disorder)",
+      "direction": "up",
+      "planted_change_pct": 60,
+      "cause": null,
+      "visits_before": 143,
+      "visits_after": 224
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Chronic congestive heart failure (disorder)",
+      "direction": "up",
+      "planted_change_pct": 10,
+      "cause": {
+        "visit_type": "inpatient"
+      },
+      "visits_before": 284,
+      "visits_after": 286
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Acute viral pharyngitis (disorder)",
+      "direction": "up",
+      "planted_change_pct": 80,
+      "cause": null,
+      "visits_before": 50,
+      "visits_after": 86
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Acute bacterial sinusitis (disorder)",
+      "direction": "up",
+      "planted_change_pct": 60,
+      "cause": null,
+      "visits_before": 58,
+      "visits_after": 96
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Normal pregnancy",
+      "direction": "down",
+      "planted_change_pct": -40,
+      "cause": null,
+      "visits_before": 315,
+      "visits_after": 169
+    },
+    {
+      "dimension": "diagnosis",
+      "group": "Anemia (disorder)",
+      "direction": "down",
+      "planted_change_pct": -40,
+      "cause": null,
+      "visits_before": 102,
+      "visits_after": 56
+    },
+    {
+      "dimension": "age_band",
+      "group": "0-17",
+      "direction": "up",
+      "planted_change_pct": 20,
+      "cause": null,
+      "visits_before": 1176,
+      "visits_after": 1411
+    },
+    {
+      "dimension": "age_band",
+      "group": "18-34",
+      "direction": "down",
+      "planted_change_pct": -10,
+      "cause": null,
+      "visits_before": 2961,
+      "visits_after": 2665
+    },
+    {
+      "dimension": "age_band",
+      "group": "80+",
+      "direction": "up",
+      "planted_change_pct": 10,
+      "cause": null,
+      "visits_before": 1187,
+      "visits_after": 1306
+    },
+    {
+      "dimension": "age_band",
+      "group": "65-79",
+      "direction": "down",
+      "planted_change_pct": -20,
+      "cause": null,
+      "visits_before": 1973,
+      "visits_after": 1578
+    }
+  ]
+}
