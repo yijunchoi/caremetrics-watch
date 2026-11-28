@@ -22,7 +22,7 @@ from agents import RunHooks
 from background import BackgroundAgents
 from detect import break_down, detect, explaining_segments
 from team import breakdown
-from tools.sql import db
+from tools.db import db
 
 ROOT = Path(__file__).parent.parent
 K = int(sys.argv[1]) if len(sys.argv) > 1 else 3

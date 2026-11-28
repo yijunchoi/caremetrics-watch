@@ -10,7 +10,7 @@ so the Analyst filters on values that exist instead of guessing.
 import re
 from difflib import get_close_matches
 
-from tools.sql import db
+from tools.db import db
 
 # Where each kind of entity lives in the database.
 COLUMNS = {

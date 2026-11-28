@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from background import BackgroundAgents
 from detect import break_down
 from team.models import SETTINGS, STRONG_MODEL
-from tools.sql import db
+from tools.db import db
 
 
 @function_tool(name_override="break_down")
