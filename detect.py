@@ -78,6 +78,74 @@ def detect(db) -> list[dict]:
     return sorted(rows, key=lambda row: -abs(row["z"]))
 
 
+def break_down(db, dimension: str, group: str, top: int = 5) -> dict:
+    """Split one group's change by each other dimension: which segments the change came from.
+
+    For each segment: its usual monthly visits (mean of the 12 months before the latest), its
+    latest count, its change, its share of the group's change, and its usual share of the group's
+    visits. A segment whose share of the change is far above its usual share is where it happened.
+    """
+    latest_month = db.execute("SELECT date_trunc('month', max(START)) FROM encounters").fetchone()[0]
+    params = {"group": group, "latest": latest_month}
+    in_window = f"START >= $latest - INTERVAL {BASELINE_MONTHS} MONTH"
+
+    latest, usual = db.execute(f"""
+        SELECT count(*) FILTER (WHERE START >= $latest),
+               count(*) FILTER (WHERE START < $latest) / {BASELINE_MONTHS}
+        FROM encounters WHERE {DIMENSIONS[dimension]} = $group AND {in_window}
+    """, params).fetchone()
+    change = latest - usual
+
+    breakdowns = {}
+    for other in DIMENSIONS:
+        if other == dimension:
+            continue
+        rows = db.execute(f"""
+            SELECT coalesce({DIMENSIONS[other]}, '(none recorded)') AS segment,
+                   count(*) FILTER (WHERE START >= $latest) AS latest,
+                   count(*) FILTER (WHERE START < $latest) / {BASELINE_MONTHS} AS usual
+            FROM encounters WHERE {DIMENSIONS[dimension]} = $group AND {in_window}
+            GROUP BY 1
+        """, params).fetchall()
+        segments = []
+        for segment, seg_latest, seg_usual in rows:
+            share_of_change = (seg_latest - seg_usual) / change * 100
+            usual_share = seg_usual / usual * 100
+            segments.append({
+                "segment": segment,
+                "usual": round(seg_usual, 1),
+                "latest": seg_latest,
+                "change": round(seg_latest - seg_usual, 1),
+                "share_of_change_pct": round(share_of_change),
+                "usual_share_pct": round(usual_share),
+                # If the change were spread evenly, share_of_change would equal usual_share.
+                "points_above_usual": round(share_of_change - usual_share),
+            })
+        # The segments that moved most, either way.
+        breakdowns[other] = sorted(segments, key=lambda s: -abs(s["change"]))[:top]
+
+    return {"dimension": dimension, "group": group, "latest": latest, "usual": round(usual, 1),
+            "change": round(change, 1), "breakdowns": breakdowns}
+
+
+# A segment explains a change when it holds at least half of the change, and that is well
+# above its usual share of the group's visits. The Breakdown Analyst's instructions say the same.
+MIN_SHARE_OF_CHANGE = 50
+MIN_POINTS_ABOVE_USUAL = 30
+
+
+def explaining_segments(breakdown: dict) -> set[tuple[str, str]]:
+    """The (dimension, segment) pairs in a break_down() result that explain the change."""
+    return {
+        (dimension, s["segment"])
+        for dimension, segments in breakdown["breakdowns"].items()
+        for s in segments
+        if s["share_of_change_pct"] >= MIN_SHARE_OF_CHANGE
+        and s["points_above_usual"] >= MIN_POINTS_ABOVE_USUAL
+        and s["segment"] != "(none recorded)"
+    }
+
+
 if __name__ == "__main__":
     db = duckdb.connect("data/hospital.duckdb", read_only=True)
     rows = detect(db)
