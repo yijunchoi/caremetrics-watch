@@ -5,18 +5,21 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>CareMetrics Watch</title>
         <style>
-            body { font-family: system-ui, sans-serif; max-width: 700px; margin: 3rem auto; padding: 0 1rem; }
-            #messages p { line-height: 1.5; }
+            body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+            .msg { margin: 1rem 0; line-height: 1.5; white-space: pre-wrap; }
+            .you { font-weight: 600; }
+            details { margin: 0.25rem 0 0.25rem 1rem; font-size: 0.85rem; color: #555; }
+            pre { white-space: pre-wrap; background: #f4f4f4; padding: 0.5rem; max-height: 300px; overflow: auto; }
             form { display: flex; gap: 0.5rem; margin-top: 1rem; }
             input { flex: 1; padding: 0.5rem; }
         </style>
     </head>
     <body>
         <h1>CareMetrics Watch</h1>
-        <p>Placeholder page for the deploy test.</p>
+        <p>Ask about the hospital's visits, Feb 2018 – Jan 2020. <button id="new">New chat</button></p>
         <div id="messages"></div>
         <form id="form">
-            <input id="input" placeholder="Type a message..." autocomplete="off" />
+            <input id="input" placeholder="e.g. How many ER visits did Medicare patients have this month?" autocomplete="off" />
             <button>Send</button>
         </form>
         <script>
@@ -24,10 +27,23 @@
             const messages = document.getElementById("messages");
             const input = document.getElementById("input");
 
-            function add(role, text) {
-                const p = document.createElement("p");
-                p.textContent = role + ": " + text;
-                messages.appendChild(p);
+            function add(className, text) {
+                const div = document.createElement("div");
+                div.className = "msg " + className;
+                div.textContent = text;
+                messages.appendChild(div);
+                return div;
+            }
+
+            // One folded line per tool call: who called what, with the arguments and result inside.
+            function addToolCall(call) {
+                const details = document.createElement("details");
+                const summary = document.createElement("summary");
+                summary.textContent = call.agent + " → " + call.name;
+                const pre = document.createElement("pre");
+                pre.textContent = JSON.stringify(call.args, null, 2) + "\n\n" + call.result;
+                details.append(summary, pre);
+                messages.appendChild(details);
             }
 
             document.getElementById("form").addEventListener("submit", async (e) => {
@@ -35,15 +51,24 @@
                 const message = input.value.trim();
                 if (!message) return;
                 input.value = "";
-                add("You", message);
+                add("you", "You: " + message);
+                const waiting = add("", "…");
                 const res = await fetch("/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ message, session_id: sessionId }),
                 });
                 const data = await res.json();
+                waiting.remove();
                 sessionId = data.session_id;
-                add("Assistant", data.response);
+                data.tool_calls.forEach(addToolCall);
+                add("", data.response);
+            });
+
+            document.getElementById("new").addEventListener("click", async () => {
+                if (sessionId) await fetch("/clear?session_id=" + sessionId, { method: "POST" });
+                sessionId = null;
+                messages.innerHTML = "";
             });
         </script>
     </body>
